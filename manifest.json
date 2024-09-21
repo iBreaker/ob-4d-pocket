@@ -1,0 +1,11 @@
+{
+  "id": "4d-pocket",
+  "name": "4D Pocket",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "A plugin for creating and managing ideas in Obsidian",
+  "author": "Breaker",
+  "authorUrl": "https://your-website.com",
+  "isDesktopOnly": false,
+  "main": "main.js"
+}
