@@ -1,4 +1,4 @@
-import { Plugin, Editor, MarkdownView } from 'obsidian';
+import { Plugin, Editor, MarkdownView, moment } from 'obsidian';
 
 export default class FourDPocketPlugin extends Plugin {
   async onload() {
@@ -6,7 +6,7 @@ export default class FourDPocketPlugin extends Plugin {
 
     this.addCommand({
       id: 'create-idea',
-      name: '创建Idea',
+      name: 'CreateIdea',
       editorCallback: (editor: Editor, view: MarkdownView) => {
         const today = new Date().toISOString().split('T')[0];
         const ideaTemplate = `- [ ] #todo #idea  ➕ ${today} ✅ ${today}`;
@@ -23,6 +23,17 @@ export default class FourDPocketPlugin extends Plugin {
           editor.replaceRange(ideaTemplate, { line: currentLine, ch: 0 });
           editor.setCursor({ line: currentLine, ch: 18 }); // 将光标移动到 "#idea " 之后
         }
+      }
+    });
+
+    this.addCommand({
+      id: 'create-work',
+      name: 'CreateWork',
+      editorCallback: (editor: Editor, view: MarkdownView) => {
+        const selection = editor.getSelection();
+        const today = moment().format('YYYY-MM-DD');
+        const taskTemplate = `- [ ] #todo #work ${selection} ➕ ${today} ✅ ${today}`;
+        editor.replaceSelection(taskTemplate);
       }
     });
 
