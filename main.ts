@@ -9,7 +9,7 @@ export default class FourDPocketPlugin extends Plugin {
       name: 'CreateIdea',
       editorCallback: (editor: Editor, view: MarkdownView) => {
         const today = new Date().toISOString().split('T')[0];
-        const ideaTemplate = `- [ ] #todo #idea  ➕ ${today} ✅ ${today}`;
+        const ideaTemplate = `- [ ] #todo #idea  ➕ ${today}`;
         
         const currentLine = editor.getCursor().line;
         const currentLineContent = editor.getLine(currentLine);
@@ -30,10 +30,36 @@ export default class FourDPocketPlugin extends Plugin {
       id: 'create-work',
       name: 'CreateWork',
       editorCallback: (editor: Editor, view: MarkdownView) => {
-        const selection = editor.getSelection();
+        let selection = editor.getSelection();
         const today = moment().format('YYYY-MM-DD');
-        const taskTemplate = `- [ ] #todo #work ${selection} ➕ ${today} ✅ ${today}`;
-        editor.replaceSelection(taskTemplate);
+        
+        const cursor = editor.getCursor();
+        const currentLine = cursor.line;
+        const currentLineContent = editor.getLine(currentLine);
+        
+        // 获取当前行的缩进，添加空值检查
+        const indentationMatch = currentLineContent.match(/^[\s\t]*/);
+        const indentation = indentationMatch ? indentationMatch[0] : '';
+        
+        if (!selection) {
+          // 如果没有选择任何内容，获取当前行的内容（去除缩进）
+          selection = currentLineContent.trim();
+        }
+        
+        // 去除序号
+        selection = selection.replace(/^\d+\.\s*/, '');
+        
+        const taskTemplate = `${indentation}- [ ] #todo #work ${selection.trim()} ➕ ${today}`;
+        
+        // 替换整行内容
+        editor.replaceRange(taskTemplate, 
+          { line: currentLine, ch: 0 }, 
+          { line: currentLine, ch: currentLineContent.length }
+        );
+
+        // 将光标移动到 ➕ ${today} 之前
+        const cursorPosition = taskTemplate.indexOf(' ➕ ');
+        editor.setCursor({ line: currentLine, ch: cursorPosition });
       }
     });
 
