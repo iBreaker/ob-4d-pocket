@@ -144,34 +144,36 @@ export default class FourDPocketPlugin extends Plugin {
       return;
     }
 
+    
+
     if (abstractFile instanceof TFile) {
       // 如果是文件，打开它
       this.app.workspace.openLinkText(path, '');
+      setCollapsed(abstractFile.parent as TFolder);
     } else if (abstractFile instanceof TFolder) {
       // 如果是文件夹，在文件浏览器中展开它
-      const explorerLeaves = this.app.workspace.getLeavesOfType('file-explorer');
-      if (explorerLeaves.length > 0) {
-        const explorerView = explorerLeaves[0].view;
-        const tree = (explorerView as any).tree
-
-        setCollapsed(tree, abstractFile as TFolder);
-      } else {
-        new Notice('文件浏览器未打开。请先打开文件浏览器。');
-      }
+      setCollapsed(abstractFile as TFolder)
     }
   }
 }
 
 
 // 递归展开文件夹
-function setCollapsed(tree: any, folder: TFolder) {
+function setCollapsed(folder: TFolder) {
+  const explorerLeaves = this.app.workspace.getLeavesOfType('file-explorer');
+  if (explorerLeaves === undefined || explorerLeaves.length === 0) {
+    new Notice('文件浏览器未打开。请先打开文件浏览器。');
+    return;
+  }
+
+  const explorerView = explorerLeaves[0].view;
+  const tree = (explorerView as any).tree
 
   const parent = folder.parent;
   if (parent) {
-    setCollapsed(tree, parent as TFolder);
+    setCollapsed(parent as TFolder);
   }
 
-  console.log(folder.path, tree.view.fileItems[folder.path]);
   if (tree.view.fileItems[folder.path] === undefined) {
     return;
   }
