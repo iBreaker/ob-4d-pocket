@@ -1,0 +1,56 @@
+@startuml
+title FourDPocketPlugin 工作流程
+
+start
+
+:插件加载 (`onload`);
+:加载设置 (`loadSettings`);
+
+if (设置加载成功?) then (是)
+  :添加设置选项卡 (`addSettingTab`);
+  :添加 CreateIdea 命令 (`addCommand`);
+  :添加 CreateWork 命令 (`addCommand`);
+  :添加配置路径的命令 (`addCommandsForConfiguredLocations`);
+  :显示加载成功日志;
+else (否)
+  :显示加载失败通知;
+  stop
+endif
+
+partition CreateIdea {
+  :用户触发 CreateIdea 命令;
+  :获取当前日期;
+  :生成 Idea 模板;
+
+  if (当前行不为空?) then (是)
+    :在下一行插入模板;
+    :移动光标到指定位置;
+  else (否)
+    :在当前行插入模板;
+    :移动光标到指定位置;
+  endif
+}
+
+partition CreateWork {
+  :用户触发 CreateWork 命令;
+  :获取选择内容或当前行内容;
+  :格式化任务模板;
+  :替换当前行内容;
+  :移动光标到指定位置;
+}
+
+partition 配置命令 {
+  :遍历配置的路径;
+
+  if (命令已存在?) then (是)
+    :跳过添加该命令;
+  else (否)
+    :添加新的打开路径命令;
+    :记录已添加的命令 ID;
+  endif
+}
+
+:插件运行中;
+
+stop
+@enduml

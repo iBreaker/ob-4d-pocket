@@ -1,0 +1,38 @@
+@startuml
+title FourDPocketPlugin UML 图
+
+class FourDPocketPlugin {
+  - settings: FourDPocketSettings
+  - addedCommandIds: Set<string>
+  + onload()
+  + onunload()
+  + loadSettings()
+  + saveSettings()
+  + sanitizePath(path: string): string
+  + addCommandsForConfiguredLocations()
+  + reloadCommands()
+  + openConfiguredLocation(path: string)
+}
+
+class Plugin {
+}
+
+class FourDPocketSettings {
+}
+
+class FourDPocketSettingTab {
+  + constructor(app: any, plugin: FourDPocketPlugin)
+}
+
+FourDPocketPlugin --|> Plugin
+FourDPocketPlugin --> FourDPocketSettings
+FourDPocketPlugin --> FourDPocketSettingTab
+FourDPocketPlugin --> "Set<string>" : addedCommandIds
+FourDPocketPlugin --> Editor
+FourDPocketPlugin --> MarkdownView
+FourDPocketPlugin --> TFile
+FourDPocketPlugin --> TFolder
+FourDPocketPlugin --> Notice
+FourDPocketPlugin --> Menu
+
+@enduml
