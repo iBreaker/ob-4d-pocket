@@ -3,6 +3,7 @@ import { FourDPocketSettings, DEFAULT_SETTINGS, FourDPocketSettingTab } from './
 
 export default class FourDPocketPlugin extends Plugin {
   settings: FourDPocketSettings;
+  private addedCommandIds: Set<string> = new Set();
 
   async onload() {
     console.log('4D Pocket is loading...');
@@ -73,14 +74,8 @@ export default class FourDPocketPlugin extends Plugin {
       }
     });
 
-    // 添加 Open Configured Location 命令
-    this.addCommand({
-      id: 'open-configured-location',
-      name: 'Open Configured Location',
-      callback: () => {
-        this.openConfiguredLocationMenu();
-      }
-    });
+    // 动态添加打开配置路径的命令
+    this.addCommandsForConfiguredLocations();
 
     console.log('4D Pocket loaded successfully');
   }
@@ -95,36 +90,48 @@ export default class FourDPocketPlugin extends Plugin {
 
   async saveSettings() {
     await this.saveData(this.settings);
+    // After saving settings, reload commands
+    this.reloadCommands();
   }
 
-  // 修改 openConfiguredLocationMenu 方法，不接收参数，并在窗口中心显示菜单
-  openConfiguredLocationMenu() {
-    const menu = new Menu();
-    const configuredLocations = this.settings.configuredLocations;
+  // Helper function to sanitize path for command IDs
+  sanitizePath(path: string): string {
+    return path.replace(/[\/\\:]/g, '-').replace(/\s+/g, '-').toLowerCase();
+  }
 
-    if (configuredLocations.length === 0) {
-      new Notice('没有配置的路径。请在插件设置中添加路径。');
-      return;
-    }
+  // Function to add commands for each configured path
+  addCommandsForConfiguredLocations() {
+    // Iterate over each configured path and add a separate command
+    this.settings.configuredLocations.forEach((path) => {
+      const sanitizedPath = this.sanitizePath(path);
+      const commandId = `fourdpocket-open-${sanitizedPath}`;
+      const commandName = `Open "${path}"`;
 
-    configuredLocations.forEach((path) => {
-      menu.addItem((item) => {
-        item.setTitle(path)
-            .setIcon('folder')
-            .onClick(() => {
-              this.openConfiguredLocation(path);
-              menu.hide();
-            });
+      if (this.addedCommandIds.has(commandId)) {
+        console.log(`Command "${commandId}" already exists. Skipping.`);
+        return;
+      }
+
+      // Add command
+      this.addCommand({
+        id: commandId,
+        name: commandName,
+        callback: () => {
+          this.openConfiguredLocation(path);
+        }
       });
-    });
 
-    // 在窗口中心显示菜单
-    const x = window.innerWidth / 2;
-    const y = window.innerHeight / 2;
-    menu.showAtPosition({x, y});
+      this.addedCommandIds.add(commandId);
+    });
   }
 
-  // 修改 openConfiguredLocation 方法，正确调用 reveal 方法
+  // Function to reload commands. Since Obsidian API does not support removing commands, it's recommended to reload plugin.
+  reloadCommands() {
+    // Inform the user to reload the plugin
+    new Notice('配置已更改。请重新加载插件以应用新命令。');
+  }
+
+  // 修改 openConfiguredLocation 方法，正确调用展开目录的方法
   openConfiguredLocation(path: string) {
     if (!path) {
       new Notice('无效的路径。');
@@ -156,6 +163,7 @@ export default class FourDPocketPlugin extends Plugin {
 }
 
 
+// 递归展开文件夹
 function setCollapsed(tree: any, folder: TFolder) {
 
   const parent = folder.parent;
@@ -174,3 +182,5 @@ function setCollapsed(tree: any, folder: TFolder) {
 
   tree.view.fileItems[folder.path].toggleCollapsed();
 }
+
+
